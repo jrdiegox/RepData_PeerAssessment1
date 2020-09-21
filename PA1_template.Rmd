@@ -1,25 +1,86 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "PA1_template"
+author: "Diego André Genaro García Méndez"
+date: "21/9/2020"
+output: html_document
 ---
 
+1.Code for reading in the dataset and/or processing the data
 
-## Loading and preprocessing the data
+```{r}
+
+setwd("C:/Users/Diego/Documents/Cosas utiles de R/repdata_data_activity")
+data<-read.csv("activity.csv")
+```
+
+2.Histogram of the total number of steps taken each day
+```{r}
+library(dplyr)
+totalperday<- data %>% group_by(date) %>% summarise(totalday=sum(steps))
+
+hist(totalperday$totalday)
+
+```
+
+3.Mean and median number of steps taken each day
+
+```{r}
+meanmedian<- data %>% group_by(date) %>% summarise(mean=mean(steps),median=median(steps))
+head(meanmedian)
+```
+
+4. series plot of the average number of steps taken
+```{r}
+library(ggplot2)
+meanmedian$date<-as.Date(meanmedian$date)
+meanmedian %>%
+  ggplot( aes(x=date, y=mean)) +
+    geom_line() +
+    geom_point()
+```
+
+5.The 5-minute interval that, on average, contains the maximum number of steps
+
+```{r}
+max<-max(data$steps,na.rm=T)
+data[max,3]
+```
+6.Code to describe and show a strategy for imputing missing data
+
+In this case a will use tha mean for imputing the missing data.
+And number of missing values
+
+```{r}
+
+mean<-mean(data$steps,na.rm=T)
+missing<-is.na(data$steps)
+newdata<-data
+newdata[missing,1]<-mean
+numberna<-sum(is.na(data$steps))
+numberna
+```
+
+7.Histogram of the total number of steps taken each day after missing values are imputed
+
+```{r}
+totalperday<- newdata %>% group_by(date) %>% summarise(totalday=sum(steps))
+
+hist(totalperday$totalday)
+```
+
+8.Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+```{r}
+avg<- data %>% group_by(date) %>% summarise(mean=mean(steps))
+day<-weekdays(as.Date(avg$date))
+
+weekday<-factor(day %in% c("lunes","martes","miércoles","jueves","viernes"),levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
+dataday<-cbind(avg,weekday) 
+
+par(mfrow=c(2,1))
 
 
+plot(dataday[dataday$weekday=='weekday',2],type = "l",main = 'weekday')
+plot(dataday[dataday$weekday=='weekend',2],type = "l",main='weekend')
+```
 
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
